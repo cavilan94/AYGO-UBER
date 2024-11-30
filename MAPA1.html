@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa servicio de alquiler de carros</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        #map { height: 500px; }
+        button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Animación de Carro en Mapa</h1>
+
+    <div>
+        <button onclick="startAnimation()">Iniciar viaje</button>
+        <button onclick="resetMap()">Reiniciar</button>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+    <script>
+        // Crear el mapa y centrarlo en un punto por defecto
+        var map = L.map('map').setView([4.702629363355156, -74.04120974599385], 13);  // Mapa centrado en Bogota calle 127
+
+        // Agregar capa de mapa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Crear un icono de carro
+        var carIcon = L.icon({
+            iconUrl: 'https://img.icons8.com/ios/452/car.png', // Icono de carro
+            iconSize: [40, 40],
+            iconAnchor: [20, 40], // Ancla del icono (en la parte inferior del carro)
+            popupAnchor: [0, -40] // Ancla del popup
+        });
+
+        var startLatLng = null;  // Coordenada del punto de inicio
+        var endLatLng = null;    // Coordenada del punto de destino
+        var positionMarker = null; // Marcador del carro
+        var routeCoordinates = []; // Coordenadas de la ruta
+        var routeLine = null;      // Línea de la ruta
+        var intervalId = null;     // Identificador del intervalo
+        var currentIndex = 0;      // Índice para animación
+
+        // Función para manejar los clics en el mapa
+        map.on('click', function (e) {
+            if (!startLatLng) {
+                // Primer clic: marcar el punto de inicio
+                startLatLng = e.latlng;
+                L.marker(startLatLng).addTo(map).bindPopup("Inicio").openPopup();
+            } else if (!endLatLng) {
+                // Segundo clic: marcar el punto de destino
+                endLatLng = e.latlng;
+                L.marker(endLatLng).addTo(map).bindPopup("Destino").openPopup();
+
+                // Traza la línea entre los dos puntos
+                routeCoordinates = [startLatLng, endLatLng];
+                routeLine = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
+            }
+        });
+
+        // Función para iniciar la animación del carro
+        function startAnimation() {
+            if (!startLatLng || !endLatLng) {
+                alert("No se han ingresado los puntos de incio y destino");
+                return;
+            }
+
+            // Crear el marcador del carro si no existe
+            if (!positionMarker) {
+                positionMarker = L.marker(startLatLng, { icon: carIcon }).addTo(map);
+            }
+
+            // Detener cualquier animación previa
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+
+            currentPosition = { lat: routeCoordinates[0].lat, lng: routeCoordinates[0].lng }; // Reiniciar la animación al inicio de la ruta
+            moveMarkerAlongRoute();
+            intervalId = setInterval(moveMarkerAlongRoute, 2000);  // Actualizar la posición cada 2 segundos
+        }
+
+        // Función para mover el marcador a lo largo de la ruta con un paso de 0.1 grados
+        function moveMarkerAlongRoute() {
+            var startLat = routeCoordinates[0].lat;
+            var startLng = routeCoordinates[0].lng;
+            var endLat = routeCoordinates[1].lat;
+            var endLng = routeCoordinates[1].lng;
+
+            // Mover el marcador 0.1 grados a la vez
+            var deltaLat = (endLat - startLat) * 0.1;
+            var deltaLng = (endLng - startLng) * 0.1;
+
+            // Actualizar la posición del marcador
+            currentPosition.lat += deltaLat;
+            currentPosition.lng += deltaLng;
+
+            // Actualizar la posición del marcador en el mapa
+            positionMarker.setLatLng([currentPosition.lat, currentPosition.lng]);
+
+            // Si el marcador ha llegado cerca del destino, detener la animación
+            if (Math.abs(currentPosition.lat - endLat) < 0.0001 && Math.abs(currentPosition.lng - endLng) < 0.0001) {
+                clearInterval(intervalId); // Detener la animación
+                alert("El viaje ha finalizado, gracias por viajar con nosotros");
+            }
+        }
+        // Función para reiniciar el mapa y borrar los puntos
+        function resetMap() {
+            // Limpiar el mapa
+            map.eachLayer(function(layer) {
+                if (layer != map) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Volver a agregar la capa de mapa de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Reiniciar variables
+            startLatLng = null;
+            endLatLng = null;
+            positionMarker = null;
+            routeCoordinates = [];
+            routeLine = null;
+            currentIndex = 0;
+        }
+    </script>
+
+</body>
+</html>
