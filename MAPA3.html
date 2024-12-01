@@ -74,3 +74,12 @@
 
 </body>
 </html>
+
+.then(data => {
+    let resultHtml = "<h3>Valores Calculados:</h3>";
+    data.values.forEach(value => {
+        resultHtml += `<p>Lat: ${value.lat.toFixed(4)}, Lon: ${value.lon.toFixed(4)}, Pendiente: ${value.slope.toFixed(4)}</p>`;
+    });
+    document.getElementById('info-box').innerHTML = resultHtml;
+})
+
