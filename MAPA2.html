@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa con Carro</title>
+    <!-- Incluir el CSS de Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+        .car-icon {
+            width: 32px;
+            height: 32px;
+            background-color: red;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <button id="trace-route">Trace Ruta</button>
+    <button id="reset-map">Reiniciar Mapa</button>
+
+    <!-- Incluir la librería de Leaflet -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map = L.map('map').setView([19.4326, -99.1332], 13); // Ubicación inicial en CDMX, ajusta si lo deseas
+
+        // Capa del mapa
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        let startPoint = null;
+        let endPoint = null;
+        let routeLine = null;
+        let carMarker = null;
+
+        // Función para añadir un marcador en el mapa al hacer click
+        map.on('click', function(e) {
+            if (!startPoint) {
+                startPoint = e.latlng;
+                L.marker(startPoint).addTo(map).bindPopup("Inicio").openPopup();
+            } else if (!endPoint) {
+                endPoint = e.latlng;
+                L.marker(endPoint).addTo(map).bindPopup("Destino").openPopup();
+            }
+        });
+
+        // Función para trazar la ruta y mover el carro
+        document.getElementById('trace-route').onclick = function() {
+            if (startPoint && endPoint) {
+                // Trazar la línea recta entre los puntos
+                routeLine = L.polyline([startPoint, endPoint], {color: 'blue'}).addTo(map);
+
+                // Crear un marcador de carro en el inicio
+                carMarker = L.divIcon({className: 'car-icon'});
+                let car = L.marker(startPoint, {icon: carMarker}).addTo(map);
+
+                let currentPoint = startPoint;
+                let step = 0.1; // Paso de 0.1 grados
+
+                // Llamada al API para calcular el recorrido y desplazamiento
+                setInterval(() => {
+                    fetch(`arn:aws:execute-api:us-east-1:774433772810:4ifp3jiryk/*/GET/=${startPoint.lat}&startLng=${startPoint.lng}&endLat=${endPoint.lat}&endLng=${endPoint.lng}&step=${step}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let nextPos = data.nextPosition;
+                            currentPoint = [nextPos.lat, nextPos.lng];
+                            car.setLatLng(currentPoint);
+                        });
+                }, 3000);
+            }
+        };
+
+        // Función para reiniciar el mapa
+        document.getElementById('reset-map').onclick = function() {
+            map.removeLayer(routeLine);
+            map.removeLayer(carMarker);
+            startPoint = null;
+            endPoint = null;
+        };
+    </script>
+</body>
+</html>
