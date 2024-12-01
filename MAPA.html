@@ -100,7 +100,7 @@
         }
 
         async function getCarPosition(start, end) {
-            const response = await fetch('arn:aws:execute-api:us-east-1:774433772810:moyxydfhg7/*/POST/', {
+            const response = await fetch('https://moyxydfhg7.execute-api.us-east-1.amazonaws.com/paso', {
                 method: 'POST',
                 body: JSON.stringify({ start: start, end: end }),
                 headers: { 'Content-Type': 'application/json' }

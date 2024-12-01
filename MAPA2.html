@@ -65,7 +65,7 @@
 
                 // Llamada al API para calcular el recorrido y desplazamiento
                 setInterval(() => {
-                    fetch(`arn:aws:execute-api:us-east-1:774433772810:4ifp3jiryk/*/GET/=${startPoint.lat}&startLng=${startPoint.lng}&endLat=${endPoint.lat}&endLng=${endPoint.lng}&step=${step}`)
+                    fetch(`https://4ifp3jiryk.execute-api.us-east-1.amazonaws.com/prod=${startPoint.lat}&startLng=${startPoint.lng}&endLat=${endPoint.lat}&endLng=${endPoint.lng}&step=${step}`)
                         .then(response => response.json())
                         .then(data => {
                             let nextPos = data.nextPosition;
