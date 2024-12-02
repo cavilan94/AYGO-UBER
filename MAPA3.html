@@ -1,75 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Interactivo</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <style>
-    #map { height: 400px; }
-    #coordinates { padding: 10px; margin-top: 20px; border: 1px solid #ccc; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcular Pendiente</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let puntoInicio = null;
+        let puntoDestino = null;
+        let mapa;
+
+        // Función que inicializa el mapa
+        function initMap() {
+            // Creamos el mapa centrado en una ubicación inicial
+            mapa = L.map('mapa').setView([19.432608, -99.133209], 13); // Coordenadas de ejemplo (Ciudad de México)
+
+            // Agregar la capa de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mapa);
+
+            // Escuchar los clics en el mapa
+            mapa.on('click', function(e) {
+                if (!puntoInicio) {
+                    puntoInicio = e.latlng;
+                    L.marker(puntoInicio).addTo(mapa).bindPopup("Punto de inicio").openPopup();
+                } else if (!puntoDestino) {
+                    puntoDestino = e.latlng;
+                    L.marker(puntoDestino).addTo(mapa).bindPopup("Punto de destino").openPopup();
+                } else {
+                    // Si ya se han seleccionado ambos puntos, reiniciar la selección
+                    puntoInicio = e.latlng;
+                    puntoDestino = null;
+                    mapa.clearLayers();
+                    L.marker(puntoInicio).addTo(mapa).bindPopup("Punto de inicio").openPopup();
+                }
+            });
+        }
+
+        // Función para calcular la pendiente llamando a la función Lambda
+        function calcularPendiente() {
+            if (!puntoInicio || !puntoDestino) {
+                alert("Por favor, seleccione un punto de inicio y un punto de destino.");
+                return;
+            }
+
+            // Extraemos las coordenadas
+            const latInicio = puntoInicio.lat;
+            const lonInicio = puntoInicio.lng;
+            const latDestino = puntoDestino.lat;
+            const lonDestino = puntoDestino.lng;
+
+            // URL de la API Gateway de AWS (reemplazar con tu URL)
+            const apiUrl = `https://tnsn4q8oek.execute-api.us-east-1.amazonaws.com/coord/calcular?latInicio=${latInicio}&lonInicio=${lonInicio}&latDestino=${latDestino}&lonDestino=${lonDestino}`;
+
+            // Realizar la solicitud GET a la API Gateway
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Mostrar el resultado
+                    if (data.pendiente) {
+                        document.getElementById("resultado").innerText = `La pendiente entre los dos puntos es: ${data.pendiente}`;
+                    } else {
+                        document.getElementById("resultado").innerText = 'No se pudo calcular la pendiente.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al calcular la pendiente:', error);
+                    document.getElementById("resultado").innerText = 'Hubo un error al calcular la pendiente.';
+                });
+        }
+
+        window.onload = initMap;
+    </script>
+    <style>
+        #mapa {
+            height: 400px;
+            width: 100%;
+        }
+        #resultado {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Mapa Interactivo</h1>
-  <div id="map"></div>
-  <div id="coordinates">
-    <p><strong>Coordenadas de Inicio:</strong> <span id="start-coordinates">No seleccionado</span></p>
-    <p><strong>Coordenadas de Destino:</strong> <span id="end-coordinates">No seleccionado</span></p>
-  </div>
-  <button id="sendCoordinates">Enviar Coordenadas</button>
+    <h1>Calcular Pendiente</h1>
+    <p>Haz clic en el mapa para seleccionar los puntos de inicio y destino.</p>
+    
+    <div id="mapa"></div>
+    
+    <button onclick="calcularPendiente()">Calcular Pendiente</button>
 
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script>
-    let map = L.map('map').setView([19.4326, -99.1332], 13); // Coordenadas iniciales para centrar el mapa (CDMX)
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    let startMarker = null;
-    let endMarker = null;
-
-    map.on('click', function(e) {
-      if (!startMarker) {
-        // Primer click: punto de inicio
-        startMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-        document.getElementById('start-coordinates').textContent = `${e.latlng.lat}, ${e.latlng.lng}`;
-      } else if (!endMarker) {
-        // Segundo click: punto de destino
-        endMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-        document.getElementById('end-coordinates').textContent = `${e.latlng.lat}, ${e.latlng.lng}`;
-      }
-    });
-
-    document.getElementById('sendCoordinates').addEventListener('click', function() {
-      if (startMarker && endMarker) {
-        // Obtenemos las coordenadas de inicio y destino
-        const startCoordinates = { lat: startMarker.getLatLng().lat, lng: startMarker.getLatLng().lng };
-        const endCoordinates = { lat: endMarker.getLatLng().lat, lng: endMarker.getLatLng().lng };
-
-        // Llamada al API Gateway
-        fetch('https://e45mh1wil7.execute-api.us-east-1.amazonaws.com/calc/calcular', {
-          
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            start: startCoordinates,
-            end: endCoordinates
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log(data);
-          // Aquí puedes mostrar el resultado de Lambda en el mapa, por ejemplo, añadiendo una ruta o distancia
-        })
-        .catch(error => console.error('Error al enviar las coordenadas:', error));
-      } else {
-        alert('Por favor, selecciona ambos puntos.');
-      }
-    });
-  </script>
+    <div id="resultado"></div>
 </body>
 </html>
-
