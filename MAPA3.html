@@ -66,7 +66,10 @@
                         document.getElementById("resultado").innerText = 'No se pudo calcular la pendiente.';
                     }
                 })
-              
+                .catch(error => {
+                    console.error('Error al calcular la pendiente:', error);
+                    document.getElementById("resultado").innerText = 'Hubo un error al calcular la pendiente.';
+                });
         }
 
         window.onload = initMap;
