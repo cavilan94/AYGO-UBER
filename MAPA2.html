@@ -63,7 +63,7 @@
         };
 
         // Llamar al API Gateway para invocar la función Lambda con el método GET
-        const url = `https://kv52z3mls7.execute-api.us-east-1.amazonaws.com/prod/viaje?startLat=${startCoordinates.lat}&startLng=${startCoordinates.lng}&endLat=${endCoordinates.lat}&endLng=${endCoordinates.lng}`;
+        const url = `https://jf1tctskuh.execute-api.us-east-1.amazonaws.com/prod/viaje?startLat=${startCoordinates.lat}&startLng=${startCoordinates.lng}&endLat=${endCoordinates.lat}&endLng=${endCoordinates.lng}`;
 
         fetch(url)
           .then(response => response.json())
