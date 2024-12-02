@@ -61,14 +61,14 @@
                 .then(data => {
                     // Mostrar el resultado
                     if (data.pendiente) {
-                        document.getElementById("resultado").innerText = `La pendiente entre los dos puntos es: ${data.pendiente}`;
+                        document.getElementById("pendiente").innerText = `La pendiente entre los dos puntos es: ${data.pendiente}`;
                     } else {
-                        document.getElementById("resultado").innerText = 'No se pudo calcular la pendiente.';
+                        document.getElementById("pendiente").innerText = 'No se pudo calcular la pendiente.';
                     }
                 })
                 .catch(error => {
                     console.error('Error al calcular la pendiente:', error);
-                    document.getElementById("resultado").innerText = 'Hubo un error al calcular la pendiente.';
+                    document.getElementById("pendiente").innerText = 'Hubo un error al calcular la pendiente.';
                 });
         }
 
