@@ -32,5 +32,22 @@ Al momento de crear el emtodo se escoge GET, se selecciona la aplicaicón lambda
 Luego se despliega la función y se asigna el nombre a la nueva etapa como prod
 ![image](https://github.com/user-attachments/assets/9ce0bc1e-4fbf-47af-a560-6635a31f6aaf)
 
+Desde el lado del mapa en HTML usando un codigo en JS se hace un llamado a la función lambda por emdio del API rest creado, enviando las coordenadas para poder calcular los valores.
+
+![image](https://github.com/user-attachments/assets/39c7f53b-b30e-469f-84be-d40e0401e9d2)
+
+Las coordenadas son utilziadas por una función que generara el movimiento del carro
+
+![image](https://github.com/user-attachments/assets/71c93782-2a40-457c-8900-6ffd2da8a763)
+
+El mapa en HTML es desplegado usando AWS Amplify, el cual al accederlo se muestra como se ve a continuación:
+
+![image](https://github.com/user-attachments/assets/6a217840-58e3-4c2e-aa0d-29c5a650a656)
+Se marcan las coordenadas de inicio y destino, y al darle click en el boton, de traza la linea entre los puntos y se hace el llmado a la función lambda para calcular los valores de desplazamiento, con los valores generados se inicia la animación del desplazamiento del icono del carro.
+
+![image](https://github.com/user-attachments/assets/53fca1cb-61b4-45b3-a0be-54a5ea56cd28)
+
+![image](https://github.com/user-attachments/assets/ec44122c-748c-4b78-b66c-5c1182ac852f)
+
 
 
