@@ -1,85 +1,118 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa de Coordenadas</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <style>
-    #map { height: 400px; }
-    #coordinates { padding: 10px; margin-top: 20px; border: 1px solid #ccc; }
-    #result { padding: 10px; margin-top: 20px; border: 1px solid #ccc; background-color: #f4f4f4; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Viaje</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let mapa;
+        let puntoInicio = null;
+        let puntoDestino = null;
+        let marcadorInicio, marcadorDestino;
+        let ruta;
+        let carroIcono;
+        let carroMarker;
+        let valoresPendiente = [];
+        let indiceValor = 0;
+
+        function initMap() {
+            // Inicializar el mapa
+            mapa = L.map('mapa').setView([19.432608, -99.133209], 13); // Coordenadas de ejemplo (Ciudad de México)
+
+            // Agregar la capa de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mapa);
+
+            // Escuchar los clics en el mapa
+            mapa.on('click', function(e) {
+                if (!puntoInicio) {
+                    puntoInicio = e.latlng;
+                    marcadorInicio = L.marker(puntoInicio).addTo(mapa).bindPopup("Punto de inicio").openPopup();
+                } else if (!puntoDestino) {
+                    puntoDestino = e.latlng;
+                    marcadorDestino = L.marker(puntoDestino).addTo(mapa).bindPopup("Punto de destino").openPopup();
+                    // Traza la línea entre los puntos
+                    trazarRuta();
+                }
+            });
+        }
+
+        // Función para trazar la ruta entre el inicio y el destino
+        function trazarRuta() {
+            if (puntoInicio && puntoDestino) {
+                // Trazamos una línea entre los puntos
+                ruta = L.polyline([puntoInicio, puntoDestino], {color: 'blue'}).addTo(mapa);
+            }
+        }
+
+        // Función para iniciar el viaje
+        function iniciarViaje() {
+            if (!puntoInicio || !puntoDestino) {
+                alert("Por favor, seleccione ambos puntos (inicio y destino).");
+                return;
+            }
+
+            // Consultar la API Gateway para obtener los valores calculados por Lambda
+            const apiUrl = `https://qhkp30riha.execute-api.us-east-1.amazonaws.com/prod/calcularPendiente?latInicio=${puntoInicio.lat}&lonInicio=${puntoInicio.lng}&latDestino=${puntoDestino.lat}&lonDestino=${puntoDestino.lng}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    valoresPendiente = data.valoresPendiente; // Se espera un array con los valores generados
+                    // Inicializar el carro en el punto de inicio
+                    carroIcono = L.icon({
+                        iconUrl: 'https://example.com/car-icon.png', // Reemplaza con la URL de tu icono de carro
+                        iconSize: [32, 32], // Tamaño del icono
+                        iconAnchor: [16, 16]
+                    });
+                    carroMarker = L.marker(puntoInicio, {icon: carroIcono}).addTo(mapa);
+
+                    // Iniciar el movimiento del carro
+                    moverCarro();
+                })
+                .catch(error => {
+                    console.error('Error al consultar la API:', error);
+                    alert("Hubo un error al calcular la pendiente.");
+                });
+        }
+
+        // Función para mover el carro entre los puntos
+        function moverCarro() {
+            if (valoresPendiente.length === 0) return;
+
+            // Mover el carro cada 3 segundos según los valores de la pendiente
+            setInterval(() => {
+                if (indiceValor < valoresPendiente.length) {
+                    let valor = valoresPendiente[indiceValor];
+                    let lat = puntoInicio.lat + valor * (puntoDestino.lat - puntoInicio.lat);
+                    let lon = puntoInicio.lng + valor * (puntoDestino.lng - puntoInicio.lng);
+                    carroMarker.setLatLng([lat, lon]);
+                    indiceValor++;
+                }
+            }, 3000); // Cada 3 segundos
+        }
+
+        window.onload = initMap;
+    </script>
+    <style>
+        #mapa {
+            height: 500px;
+            width: 100%;
+        }
+        #boton-viaje {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Mapa Interactivo</h1>
-  <div id="map"></div>
-  <div id="coordinates">
-    <p><strong>Coordenadas de Origen:</strong> <span id="start-coordinates">No seleccionado</span></p>
-    <p><strong>Coordenadas de Destino:</strong> <span id="end-coordinates">No seleccionado</span></p>
-  </div>
-  <button id="sendCoordinates">Enviar Coordenadas</button>
-  <div id="result">
-    <h3>Resultado:</h3>
-    <pre id="result-output">Esperando resultado...</pre>
-  </div>
-
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script>
-    // Crear el mapa centrado en una ubicación predeterminada
-    let map = L.map('map').setView([19.4326, -99.1332], 13); // Coordenadas iniciales (ejemplo CDMX)
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    let startMarker = null;
-    let endMarker = null;
-
-    // Evento de clic en el mapa para seleccionar el punto de origen
-    map.on('click', function(e) {
-      if (!startMarker) {
-        // Primer clic: marcar el punto de inicio
-        startMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-        document.getElementById('start-coordinates').textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
-      } else if (!endMarker) {
-        // Segundo clic: marcar el punto de destino
-        endMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-        document.getElementById('end-coordinates').textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
-      }
-    });
-
-    // Evento para enviar las coordenadas a la función Lambda
-    document.getElementById('sendCoordinates').addEventListener('click', function() {
-      if (startMarker && endMarker) {
-        const startCoordinates = {
-          lat: startMarker.getLatLng().lat,
-          lng: startMarker.getLatLng().lng
-        };
-
-        const endCoordinates = {
-          lat: endMarker.getLatLng().lat,
-          lng: endMarker.getLatLng().lng
-        };
-
-        // Llamar al API Gateway para invocar la función Lambda con el método GET
-        const url = 'https://jf1tctskuh.execute-api.us-east-1.amazonaws.com/prod/viaje?startLat=${startCoordinates.lat}&startLng=${startCoordinates.lng}&endLat=${endCoordinates.lat}&endLng=${endCoordinates.lng}';
-
-        fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            console.log('Respuesta de Lambda:', data);
-            // Mostrar las coordenadas generadas entre el origen y el destino
-            document.getElementById('result-output').textContent = `Coordenadas Intermedias:\n${data.coordinates.map(c => `Lat: ${c.lat.toFixed(4)}, Lng: ${c.lng.toFixed(4)}`).join('\n')}`;
-          })
-          .catch(error => {
-            console.error('Error al enviar las coordenadas:', error);
-            document.getElementById('result-output').textContent = 'Error al procesar la solicitud.';
-          });
-      } else {
-        alert('Por favor, selecciona un punto de origen y un punto de destino.');
-      }
-    });
-  </script>
+    <h1>Simulación de Viaje</h1>
+    <p>Haz clic en el mapa para seleccionar los puntos de inicio y destino, luego presiona "Iniciar Viaje".</p>
+    <div id="mapa"></div>
+    <button id="boton-viaje" onclick="iniciarViaje()">Iniciar Viaje</button>
 </body>
 </html>
