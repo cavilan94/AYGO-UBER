@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Interactivo</title>
+  <title>Mapa de Coordenadas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     #map { height: 400px; }
@@ -15,7 +15,8 @@
   <h1>Mapa Interactivo</h1>
   <div id="map"></div>
   <div id="coordinates">
-    <p><strong>Coordenadas de Inicio:</strong> <span id="start-coordinates">No seleccionado</span></p>
+    <p><strong>Coordenadas de Origen:</strong> <span id="start-coordinates">No seleccionado</span></p>
+    <p><strong>Coordenadas de Destino:</strong> <span id="end-coordinates">No seleccionado</span></p>
   </div>
   <button id="sendCoordinates">Enviar Coordenadas</button>
   <div id="result">
@@ -25,53 +26,58 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-    // Crear el mapa centrado en una ubicación por defecto
-    let map = L.map('map').setView([19.4326, -99.1332], 13); // Coordenadas iniciales de ejemplo (CDMX)
+    // Crear el mapa centrado en una ubicación predeterminada
+    let map = L.map('map').setView([19.4326, -99.1332], 13); // Coordenadas iniciales (ejemplo CDMX)
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
     let startMarker = null;
+    let endMarker = null;
 
-    // Evento de clic en el mapa para seleccionar el punto de inicio
+    // Evento de clic en el mapa para seleccionar el punto de origen
     map.on('click', function(e) {
-      if (startMarker) {
-        startMarker.setLatLng(e.latlng); // Mover el marcador si ya existe
-      } else {
-        startMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map); // Marcar el punto de inicio
+      if (!startMarker) {
+        // Primer clic: marcar el punto de inicio
+        startMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+        document.getElementById('start-coordinates').textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+      } else if (!endMarker) {
+        // Segundo clic: marcar el punto de destino
+        endMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+        document.getElementById('end-coordinates').textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
       }
-      document.getElementById('start-coordinates').textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
     });
 
     // Evento para enviar las coordenadas a la función Lambda
     document.getElementById('sendCoordinates').addEventListener('click', function() {
-      if (startMarker) {
+      if (startMarker && endMarker) {
         const startCoordinates = {
           lat: startMarker.getLatLng().lat,
           lng: startMarker.getLatLng().lng
         };
 
-        // Llamar al API Gateway para invocar la función Lambda
-        fetch('https://d16ehhpcr9.execute-api.us-east-1.amazonaws.com/prod/coords', { // Reemplaza con tu URL de API Gateway
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(startCoordinates)
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Respuesta de Lambda:', data);
-          // Mostrar las coordenadas resultantes
-          document.getElementById('result-output').textContent = `Nuevo Punto:\nLatitud: ${data.newLat.toFixed(4)}\nLongitud: ${data.newLng.toFixed(4)}`;
-        })
-        .catch(error => {
-          console.error('Error al enviar las coordenadas:', error);
-          document.getElementById('result-output').textContent = 'Error al procesar la solicitud.';
-        });
+        const endCoordinates = {
+          lat: endMarker.getLatLng().lat,
+          lng: endMarker.getLatLng().lng
+        };
+
+        // Llamar al API Gateway para invocar la función Lambda con el método GET
+        const url = `https://kv52z3mls7.execute-api.us-east-1.amazonaws.com/prod/viaje?startLat=${startCoordinates.lat}&startLng=${startCoordinates.lng}&endLat=${endCoordinates.lat}&endLng=${endCoordinates.lng}`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            console.log('Respuesta de Lambda:', data);
+            // Mostrar las coordenadas generadas entre el origen y el destino
+            document.getElementById('result-output').textContent = `Coordenadas Intermedias:\n${data.coordinates.map(c => `Lat: ${c.lat.toFixed(4)}, Lng: ${c.lng.toFixed(4)}`).join('\n')}`;
+          })
+          .catch(error => {
+            console.error('Error al enviar las coordenadas:', error);
+            document.getElementById('result-output').textContent = 'Error al procesar la solicitud.';
+          });
       } else {
-        alert('Por favor, selecciona un punto de inicio.');
+        alert('Por favor, selecciona un punto de origen y un punto de destino.');
       }
     });
   </script>
