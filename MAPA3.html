@@ -48,7 +48,7 @@
     document.getElementById('sendDataButton').addEventListener('click', function() {
         if (startCoordinates && endCoordinates) {
             // Llamada al API REST de AWS API Gateway
-            fetch('arn:aws:execute-api:us-east-1:774433772810:e45mh1wil7/*/POST/calcular', {
+            fetch('https://e45mh1wil7.execute-api.us-east-1.amazonaws.com/calc', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
