@@ -57,7 +57,7 @@
 
             // Realizar la solicitud GET a la API Gateway
             fetch(apiUrl)
-                .then(response => response.json())
+                .then(response => response.text())
                 .then(data => {
                     // Mostrar el resultado
                     if (data.pendiente) {
