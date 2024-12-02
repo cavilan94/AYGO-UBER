@@ -49,7 +49,8 @@
     document.getElementById('iniciarViaje').addEventListener('click', function() {
         if (puntoInicio && puntoDestino) {
             // Enviar las coordenadas al API Gateway
-            fetch('https://7z74f73wec.execute-api.us-east-1.amazonaws.com/prod/calcular-coordenadas?latInicio=' + puntoInicio.lat + '&lngInicio=' + puntoInicio.lng + '&latDestino=' + puntoDestino.lat + '&lngDestino=' + puntoDestino.lng)
+            const apiUrl = `https://7z74f73wec.execute-api.us-east-1.amazonaws.com/prod/calcular-coordenadas?latInicio=${puntoInicio.lat}&lonInicio=${puntoInicio.lng}&latDestino=${puntoDestino.lat}&lonDestino=${puntoDestino.lng}`;
+            fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
                     moverCarro(data.desplazamiento);
