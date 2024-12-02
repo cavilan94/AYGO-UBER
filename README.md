@@ -41,7 +41,11 @@ Las coordenadas son utilziadas por una función que generara el movimiento del c
 
 ![image](https://github.com/user-attachments/assets/71c93782-2a40-457c-8900-6ffd2da8a763)
 
-El mapa en HTML es desplegado usando AWS Amplify, el cual al accederlo se muestra como se ve a continuación:
+El mapa en HTML es desplegado usando AWS Amplify por medio de un repositorio en github
+
+![image](https://github.com/user-attachments/assets/0cd1dc81-29eb-4a37-95c0-3ec3cfb57a60)
+
+Al Acceder al mapa desplegado en AWS Amplify se muestra como se ve a continuación:
 
 ![image](https://github.com/user-attachments/assets/6a217840-58e3-4c2e-aa0d-29c5a650a656)
 Se marcan las coordenadas de inicio y destino, y al darle click en el boton "iniciar viaje", de traza la linea entre los puntos y se hace el llmado a la función lambda para calcular los valores de desplazamiento, con los valores generados se inicia la animación del desplazamiento del icono del carro.
