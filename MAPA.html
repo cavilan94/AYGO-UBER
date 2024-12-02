@@ -3,111 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa con Movimiento de Carro</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <title>Mapa servicio de alquiler de carros</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
-        #map {
-            height: 500px;
-            width: 100%;
-        }
-        #controls {
-            margin-top: 10px;
-        }
-        .hidden {
-            display: none;
+        #map { height: 500px; }
+        button {
+            margin: 5px;
         }
     </style>
 </head>
 <body>
-    <div id="map"></div>
-    <div id="controls">
-        <button id="startButton">Iniciar Movimiento</button>
-        <button id="resetButton">Reiniciar Mapa</button>
-    </div>
-    
-    <script>
-        const map = L.map('map').setView([19.4326, -99.1332], 13); // Centrado en Ciudad de México
 
-        // Agregar mapa base de OpenStreetMap
+    <h1>Animación de Carro en Mapa</h1>
+
+    <div>
+        <button onclick="startAnimation()">Iniciar viaje</button>
+        <button onclick="resetMap()">Reiniciar</button>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+    <script>
+        // Crear el mapa y centrarlo en un punto por defecto
+        var map = L.map('map').setView([4.702629363355156, -74.04120974599385], 13);  // Mapa centrado en Bogota calle 127
+
+        // Agregar capa de mapa de OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        let startPoint = null;
-        let endPoint = null;
-        let line = null;
-        let carMarker = null;
-        let carIcon = L.icon({
-            iconUrl: 'https://img.icons8.com/ios/452/car.png', // icono carro
-            iconSize: [32, 32]
+        // Crear un icono de carro
+        var carIcon = L.icon({
+            iconUrl: 'https://img.icons8.com/ios/452/car.png', // Icono de carro
+            iconSize: [40, 40],
+            iconAnchor: [20, 40], // Ancla del icono (en la parte inferior del carro)
+            popupAnchor: [0, -40] // Ancla del popup
         });
 
-        // Evento de clic en el mapa para marcar puntos de inicio y destino
-        map.on('click', function(e) {
-            if (!startPoint) {
-                startPoint = e.latlng;
-                L.marker(startPoint).addTo(map).bindPopup("Inicio").openPopup();
-            } else if (!endPoint) {
-                endPoint = e.latlng;
-                L.marker(endPoint).addTo(map).bindPopup("Destino").openPopup();
-                line = L.polyline([startPoint, endPoint], {color: 'blue'}).addTo(map);
+        var startLatLng = null;  // Coordenada del punto de inicio
+        var endLatLng = null;    // Coordenada del punto de destino
+        var positionMarker = null; // Marcador del carro
+        var routeCoordinates = []; // Coordenadas de la ruta
+        var routeLine = null;      // Línea de la ruta
+        var intervalId = null;     // Identificador del intervalo
+        var currentIndex = 0;      // Índice para animación
+
+        // Función para manejar los clics en el mapa
+        map.on('click', function (e) {
+            if (!startLatLng) {
+                // Primer clic: marcar el punto de inicio
+                startLatLng = e.latlng;
+                L.marker(startLatLng).addTo(map).bindPopup("Inicio").openPopup();
+            } else if (!endLatLng) {
+                // Segundo clic: marcar el punto de destino
+                endLatLng = e.latlng;
+                L.marker(endLatLng).addTo(map).bindPopup("Destino").openPopup();
+
+                // Traza la línea entre los dos puntos
+                routeCoordinates = [startLatLng, endLatLng];
+                routeLine = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
             }
         });
 
-        // Función para reiniciar el mapa
-        document.getElementById('resetButton').addEventListener('click', function() {
+        // Función para iniciar la animación del carro
+        function startAnimation() {
+            if (!startLatLng || !endLatLng) {
+                alert("No se han ingresado los puntos de incio y destino");
+                return;
+            }
+
+            // Crear el marcador del carro si no existe
+            if (!positionMarker) {
+                positionMarker = L.marker(startLatLng, { icon: carIcon }).addTo(map);
+            }
+
+            // Detener cualquier animación previa
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+
+            currentPosition = { lat: routeCoordinates[0].lat, lng: routeCoordinates[0].lng }; // Reiniciar la animación al inicio de la ruta
+            moveMarkerAlongRoute();
+            intervalId = setInterval(moveMarkerAlongRoute, 2000);  // Actualizar la posición cada 2 segundos
+        }
+
+        // Función para mover el marcador a lo largo de la ruta con un paso de 0.1 grados
+        function moveMarkerAlongRoute() {
+            var startLat = routeCoordinates[0].lat;
+            var startLng = routeCoordinates[0].lng;
+            var endLat = routeCoordinates[1].lat;
+            var endLng = routeCoordinates[1].lng;
+
+            // Mover el marcador 0.1 grados a la vez
+            var deltaLat = (endLat - startLat) * 0.1;
+            var deltaLng = (endLng - startLng) * 0.1;
+
+            // Actualizar la posición del marcador
+            currentPosition.lat += deltaLat;
+            currentPosition.lng += deltaLng;
+
+            // Actualizar la posición del marcador en el mapa
+            positionMarker.setLatLng([currentPosition.lat, currentPosition.lng]);
+
+            // Si el marcador ha llegado cerca del destino, detener la animación
+            if (Math.abs(currentPosition.lat - endLat) < 0.0001 && Math.abs(currentPosition.lng - endLng) < 0.0001) {
+                clearInterval(intervalId); // Detener la animación
+                alert("El viaje ha finalizado, gracias por viajar con nosotros");
+            }
+        }
+        // Función para reiniciar el mapa y borrar los puntos
+        function resetMap() {
+            // Limpiar el mapa
             map.eachLayer(function(layer) {
-                if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+                if (layer != map) {
                     map.removeLayer(layer);
                 }
             });
-            startPoint = null;
-            endPoint = null;
-            line = null;
-            if (carMarker) {
-                map.removeLayer(carMarker);
-                carMarker = null;
-            }
-        });
 
-        // Función para iniciar el movimiento del carro
-        document.getElementById('startButton').addEventListener('click', function() {
-            if (startPoint && endPoint) {
-                moveCar();
-            }
-        });
+            // Volver a agregar la capa de mapa de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
 
-        async function moveCar() {
-            let currentPosition = { ...startPoint };
-
-            // Realizar las consultas cada 3 segundos
-            const interval = setInterval(async function() {
-                const newPosition = await getCarPosition(currentPosition, endPoint);
-                if (newPosition) {
-                    if (!carMarker) {
-                        carMarker = L.marker([newPosition.lat, newPosition.lng], { icon: carIcon }).addTo(map);
-                    } else {
-                        carMarker.setLatLng([newPosition.lat, newPosition.lng]);
-                    }
-                    currentPosition = newPosition;
-                }
-                if (currentPosition.lat === endPoint.lat && currentPosition.lng === endPoint.lng) {
-                    clearInterval(interval);
-                }
-            }, 3000);
+            // Reiniciar variables
+            startLatLng = null;
+            endLatLng = null;
+            positionMarker = null;
+            routeCoordinates = [];
+            routeLine = null;
+            currentIndex = 0;
         }
-
-        async function getCarPosition(start, end) {
-            const response = await fetch('https://e45mh1wil7.execute-api.us-east-1.amazonaws.com/calc/calcular', {
-                method: 'POST',
-                body: JSON.stringify({ start: start, end: end }),
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await response.json();
-            return data.position;
+        document.getElementById('iniciarViaje').addEventListener('click', function() {
+        if (puntoInicio && puntoDestino) {
+            // Enviar las coordenadas al API Gateway
+            const apiUrl = `https://4kb9lwjtbl.execute-api.us-east-1.amazonaws.com/prod/ruta?start_lat=${puntoInicio.lat}&start_lng=${puntoInicio.lng}&end_lat=${puntoDestino.lat}&end_lng=${puntoDestino.lng}`;
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    moverCarro(data.desplazamiento);
+                })
+                .catch(error => console.error('Error al obtener el desplazamiento:', error));
         }
+    });
+    function moverCarro(desplazamiento) {
+        let index = 0;
+        let ruta = desplazamiento;
+        
+        if (!marcadorCarro) {
+            marcadorCarro = L.marker([ruta[index].lat, ruta[index].lng], { icon: iconoCarro }).addTo(map);
+        }
+        
+        const intervalo = setInterval(function() {
+            if (index < ruta.length) {
+                marcadorCarro.setLatLng([ruta[index].lat, ruta[index].lng]);
+                index++;
+            } else {
+                clearInterval(intervalo);
+            }
+        }, 3000); // Mover cada 3 segundos
+    }
     </script>
+    
+
 </body>
 </html>
