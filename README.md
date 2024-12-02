@@ -1,5 +1,6 @@
-En este documento se explicará el funcionamiento de la aplicación desplegada en AWS que emula una plataforma de servicio de alquiler viajes como UBER, DIDI u otros.
-Como se hizó:
+En este documento se explicará el funcionamiento de la aplicación desplegada en AWS que emula una plataforma de servicio de alquiler viajes como UBER, DIDI u otros, como se hizó la aplicación y las pruebas realizadas.
+
+¿Como se hizó?
 
 Se creo un mapa en HTML sobre el cual al dar click se marcara un punto de inicio y al dar un segundo click se marca un punto destino, el mapa utilizado es uno gratuito sumistrado por leflead
 ![image](https://github.com/user-attachments/assets/a6801575-793b-4c10-94b4-8ce16174802f)
