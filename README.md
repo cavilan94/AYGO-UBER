@@ -37,7 +37,7 @@ Desde el lado del mapa en HTML usando un codigo en JS se hace un llamado a la fu
 
 ![image](https://github.com/user-attachments/assets/39c7f53b-b30e-469f-84be-d40e0401e9d2)
 
-Las coordenadas son utilziadas por una función que generara el movimiento del carro
+Las coordenadas son utilizadas por una función que generara el movimiento del carro
 
 ![image](https://github.com/user-attachments/assets/71c93782-2a40-457c-8900-6ffd2da8a763)
 
@@ -47,12 +47,17 @@ El mapa en HTML es desplegado usando AWS Amplify por medio de un repositorio en 
 
 Al Acceder al mapa desplegado en AWS Amplify se muestra como se ve a continuación:
 
-![image](https://github.com/user-attachments/assets/6a217840-58e3-4c2e-aa0d-29c5a650a656)
+![image](https://github.com/user-attachments/assets/9749e0b0-e6d2-4dfa-8f44-98e2469684db)
+
 Se marcan las coordenadas de inicio y destino, y al darle click en el boton "iniciar viaje", de traza la linea entre los puntos y se hace el llmado a la función lambda para calcular los valores de desplazamiento, con los valores generados se inicia la animación del desplazamiento del icono del carro.
 
-![image](https://github.com/user-attachments/assets/53fca1cb-61b4-45b3-a0be-54a5ea56cd28)
+![image](https://github.com/user-attachments/assets/a05ca3f8-eaf2-4ecf-a3be-e97d5421af6b)
 
-![image](https://github.com/user-attachments/assets/ec44122c-748c-4b78-b66c-5c1182ac852f)
+![image](https://github.com/user-attachments/assets/d9a1b76c-a147-4c77-a33b-1426927eb57b)
+
+![image](https://github.com/user-attachments/assets/a7517646-09ae-4628-9f53-3cb3761e6729)
+
+![image](https://github.com/user-attachments/assets/df8f1718-8311-4864-bcb7-87a6b93e17d2)
 
 Tambien se cuenta con un boton llamado "reiniciar" el cual refrezca la pantalla apra poder seleccionar nuevos puntos de inicio y destino.
 
