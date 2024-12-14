@@ -8,7 +8,7 @@ En la parte de front ent se tiene un mapa en HTML, el cual esta desplegado en AW
 
 ¿Como se hizó?
 
-Se creo un mapa en HTML sobre el cual al dar click se marcara un punto de inicio y al dar un segundo click se marca un punto destino, el mapa utilizado es uno gratuito sumistrado por leflead
+Se creó un mapa en HTML sobre el cual al dar click se marcara un punto de inicio y al dar un segundo click se marca un punto destino, el mapa utilizado es uno gratuito sumistrado por leflead
 ![image](https://github.com/user-attachments/assets/a6801575-793b-4c10-94b4-8ce16174802f)
 Este mapa como punto de referencia esta centrado en Bogota Calle 127, este sera el punto donde inicializara el mapa cada vez que se acceda al servicio.
 El mapa cuenta con boton llamado "iniciar viaje" el cual al darle click traza una linea entre los puntos de inicio y final y carga un icono en forma de carro que recorrera la linea trazada para simular el desplazamiento durante el viaje.
@@ -65,7 +65,7 @@ Se marcan las coordenadas de inicio y destino, y al darle click en el boton "ini
 
 ![image](https://github.com/user-attachments/assets/df8f1718-8311-4864-bcb7-87a6b93e17d2)
 
-Tambien se cuenta con un boton llamado "reiniciar" el cual refrezca la pantalla apra poder seleccionar nuevos puntos de inicio y destino.
+Tambien se cuenta con un boton llamado "reiniciar" el cual refrezca la pantalla para poder seleccionar nuevos puntos de inicio y destino.
 
 
 
