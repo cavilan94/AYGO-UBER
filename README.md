@@ -1,5 +1,10 @@
 En este documento se explicará el funcionamiento de la aplicación desplegada en AWS que emula una plataforma de servicio de alquiler viajes como UBER, DIDI u otros, como se hizó la aplicación y las pruebas realizadas.
 
+Arquitectura de la aplicación:
+
+![image](https://github.com/user-attachments/assets/4bcf4fba-4d9a-4418-be29-3bffba0a10df)
+
+En la parte de front ent se tiene un mapa en HTML, el cual esta desplegado en AWS por medio del modulo AWS Amplify, en el mapa se realizara la simulación de un viaje entre un punto de inicio y un punto destino, las coordenadas para eld esplazamiento son calculadas en el back end por mdeio de una funcion lambda en AWS, la cual es consultada por medio de un API rest, usando un metodo GET, esas coordenadas son usadas en el mapa para generar los desplazamientos durante la simulación del viaje.
 ¿Como se hizó?
 
 Se creo un mapa en HTML sobre el cual al dar click se marcara un punto de inicio y al dar un segundo click se marca un punto destino, el mapa utilizado es uno gratuito sumistrado por leflead
